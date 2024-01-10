@@ -65,7 +65,7 @@ app.put('/posts/:pid', function (req, res) {      // 지정한 자리에 내용�
 
 
 app.delete('/posts/', function (req, res) {
-    const { pid } = req.query;
+    const { pid } = req.query;      // query는 주소창에 안넣는다! param은 주소에 넣는다! (:pid)
     const obj = dbData[pid -1]; 
 
     dbData.splice(pid-1, 1);

@@ -1,4 +1,4 @@
-const express = require("express");   // ES module 은 require 대신에  import 로 쓴다 
+const express = require("express");
 const cors = require("cors");
 const app = express();
 const port = 3000;
@@ -6,71 +6,69 @@ const port = 3000;
 const dbData = require("./dbData.js");
 
 app.use(cors({
-    origin: "http://127.0.0.1:5500",
+    origin: "http://127.0.0.1:5500/",
     credentials: true,
     optionsSuccessStatus: 200,
-    allowedHeaders: ["Content-Type", "Authorization"],  // CORS에러 해결용
 }));
 app.use(express.json());
 // console.log(dbData);
 
+// 정적 파일 서빙 설정
+app.use(express.static(__dirname));
+
+
 app.get("/", (req, res)=> {
-    res.send("rest api server");
+    res.sendFile(__dirname + "/main.html")
 });
 
-app.get("/posts", (req, res)=> {
-    // const { postId } = req.query;  // postId는 dbData에서 객체 하나를 가져오는것 ex)데이터 8번째를 가져오는것. 그안에 UserID라던지 Id와 상관없음!!
-    const pppId = req.query.postId;
-    if (pppId) {
-        res.send(dbData[pppId - 1])
+
+app.get("/posts/:name?", (req, res) => {
+    const { name } = req.params;
+  
+    if (name) {
+        const post = dbData.find(post => post.Name === name);
+        if (post) {
+            res.json(post);
+        } else {
+            res.status(404).json({ error: "Post not found" });
+        }
+    } else {
+        res.json(dbData);       // name이 입력안되면 모든 데이터 출력
     }
-    else {
-    res.send(dbData);
-    }
 });
 
-/* http://localhost:3000/posts?userId=5&postId=8  => fetch() 에 주소가 들어감
-
-http://localhost:3000/posts/5/8 => /posts/:userId/:postId */
-
-
-app.get("/posts/pid", (req, res)=> {
-    const { pid } = req.params; // javascript 구조분해할당
-    res.send(dbData[pid - 1]);
-});
-
-
-app.post
-('/posts', function (req, res) {
-    const obj = req.body;       // 객채 {} 를 그대로 받겠다
-    
-obj.id
- = dbData.length + 1;
-    dbData.push(obj);
+app.post('/posts', function (req, res) {        // 새로운 데어티 생성
+    const obj = req.body;  // 새로운 데이터를 요청에서 받아옴
+    dbData.push(obj);  // 새로운 데이터를 배열에 추가
+    console.log(dbData[dbData.length - 1]);  // 새로 추가된 데이터 출력
     console.log(dbData.length);
-    console.log(dbData[dbData.length - 1]);
-    res.send(obj);
+-    res.send(obj);  // 클라이언트에게 추가된 데이터를 응답으로 보냄
   });
 
-app.put('/posts/:pid', function (req, res) {      // 지정한 자리에 내용을 넣어라
-    const { pid } = req.params;
-    const obj = req.body; 
-    if (!obj.id){
-        obj.id = pid;
+app.put('/posts/:name', function (req, res) {       // 기존 데이터 수정
+    const { name } = req.params;
+    const obj = req.body;
+    if(!obj.Name){
+        obj.Name = name;
+        }
+    dbData.splice(name, 1, obj);
+    console.log(obj);
+    res.send(obj);
+
+  });
+
+app.delete('/posts/:name', function (req, res) {
+    const { name } = req.params;
+
+    // dbData 배열에서 해당 name을 가진 데이터를 찾아 삭제
+    const indexToRemove = dbData.findIndex(post => post.Name === name);
+    if (indexToRemove !== -1) {
+        dbData.splice(indexToRemove, 1);
+        res.status(204).send(); // 204 No Content 응답을 보냄
+        console.log(name);
+    } else {
+        res.status(404).json({ error: "Post not found" });
     }
-    dbData.splice(pid-1, 0, obj);
-    console.log(dbData[pid - 1])
-    res.send(obj);
-  });
-
-
-app.delete('/posts/', function (req, res) {
-    const { pid } = req.query;      // query는 주소창에 안넣는다! param은 주소에 넣는다! (:pid)
-    const obj = dbData[pid -1]; 
-
-    dbData.splice(pid-1, 1);
-    console.log(dbData[pid - 1])    
-    res.send(obj);
   });
 
 app.listen(port, () => {

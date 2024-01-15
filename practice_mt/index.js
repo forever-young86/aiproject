@@ -22,7 +22,7 @@ app.get("/", (req, res)=> {
 });
 
 
-app.get("/posts/:name?", (req, res) => {
+/* app.get("/posts/:name?", (req, res) => {
     const { name } = req.params;
   
     if (name) {
@@ -35,7 +35,24 @@ app.get("/posts/:name?", (req, res) => {
     } else {
         res.json(dbData);       // name이 입력안되면 모든 데이터 출력
     }
+}); */
+
+
+app.get("/posts", (req, res) => {
+    const { name, place} = req.query;
+
+    if (name) {
+        const post = dbData.find(post => post.Name === name);
+        res.json(post);
+        } else if ( place ) {
+        const post = dbData.filter(post => post.Place.includes(place));  // 단어가 포함된것은 모든 결과 
+        res.json(post);
+        } else {
+        res.json(dbData);       // name이 입력안되면 모든 데이터 출력
+        }
 });
+
+
 
 app.post('/posts', function (req, res) {        // 새로운 데어티 생성
     const obj = req.body;  // 새로운 데이터를 요청에서 받아옴

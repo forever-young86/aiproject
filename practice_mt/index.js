@@ -3,6 +3,7 @@ const cors = require("cors");
 const app = express();
 const port = 3000;
 const dbData = require("./dbData.js");
+const maria = require('./maria.js'); // MariaDB 연동 추가
 
 app.use(cors({
     origin: "http://127.0.0.1:5500/",
@@ -12,15 +13,6 @@ app.use(cors({
 app.use(express.json());
 // console.log(dbData);
 
-
-// Oracle DB 연동을 위한 패키지 설치
-// npm install oracledb
-const oracledb = require('oracledb');
-const dbConfig = require('./dbConfig.js');
-const dotenv = require('dotenv');
-
-dotenv.config(); 
-
 // 정적 파일 서빙 설정
 app.use(express.static(__dirname));
 
@@ -29,23 +21,7 @@ app.get("/", (req, res)=> {
     res.sendFile(__dirname + "/main.html")
 });
 
-
-/* app.get("/posts/:name?", (req, res) => {
-    const { name } = req.params;
-  
-    if (name) {
-        const post = dbData.find(post => post.Name === name);
-        if (post) {
-            res.json(post);
-        } else {
-            res.status(404).json({ error: "Post not found" });
-        }
-    } else {
-        res.json(dbData);       // name이 입력안되면 모든 데이터 출력
-    }
-}); */
-
-
+//산 정보 불러오기
 app.get("/posts", (req, res) => {
     const { name, place} = req.query;
 
@@ -61,59 +37,72 @@ app.get("/posts", (req, res) => {
 });
 
 
+// DB 불러오기
+app.get("/mylist", async (req, res) => {
+    try {
+        // 쿼리 실행
+        const results = await maria.query("SELECT * FROM board");
+        console.log("Query Results:", results);
 
-/* app.post('/posts', function (req, res) {        // 새로운 데어티 생성
-    const obj = req.body;  // 새로운 데이터를 요청에서 받아옴
-    dbData.push(obj);  // 새로운 데이터를 배열에 추가
-    console.log(dbData[dbData.length - 1]);  // 새로 추가된 데이터 출력
-    console.log(dbData.length);
--    res.send(obj);  // 클라이언트에게 추가된 데이터를 응답으로 보냄
-  }); */
+        // results가 배열이 아닌 경우 배열로 변환
+        if (!Array.isArray(results)) {
+            results = [results];
+        }
 
-//클라이언트로부터 regist를 요청받으면
-app.post("/regist",function(request, response){
+        // 필요한 데이터만 추출하여 새로운 객체로 만듦
+        const sanitizedResults = results.map(result => ({
+            Name: result.mountain_name,
+            Height: result.height,
+            Place: result.place,
+            Description: result.description
+        }));
+
+        res.json(sanitizedResults);
+    } catch (error) {
+        console.error("데이터 불러오기 중 에러가 발생했습니다.", error);
+        res.status(500).json({ error: "fail" });
+    }
+});
+
+
+
+
+
+
+app.post("/regist", async function (request, response) {
     console.log(request.body);
-    //오라클에 접속해서 insert문을 실행한다. 
     var name = request.body.name;
     var height = request.body.height;
     var place = request.body.place;
     var description = request.body.description;
 
-        //쿼리문 실행 
-        conn.execute("insert into search_results(search_results_id,name,height,place,description) values(seq_search_results.nextval,'"+name+"','"+height+"','"+place+","+description+"')",function(err,result){
-            if(err){
-                console.log("등록중 에러가 발생했어요!!", err);
-                response.writeHead(500, {"ContentType":"text/html"});
-                response.end("fail!!");
-            }else{
-                console.log("result : ",result);
-                response.writeHead(200, {"ContentType":"text/html"});
-                response.end("success!!");
-            }
+    try {
+        // mariaDB에 데이터 삽입
+        await maria.query("INSERT INTO board (mountain_name, height, place, description) VALUES (?, ?, ?, ?)", [name, height, place, description]);
+        
+        // 저장된 데이터를 다시 클라이언트에게 전송
+        response.status(200).json({
+            name: name,
+            height: height,
+            place: place,
+            description: description,
+            message: "success"
         });
-    });
+    } catch (error) {
+        console.error("등록 중 에러가 발생했어요!!", error);
+        response.status(500).json({ error: "fail" });
+    }
+});
 
 
 
+app.put('/posts/:name', function (req, res) {
+    // MariaDB에서 데이터를 수정할 수 있도록 수정
+});
 
-
-app.put('/posts/:name', function (req, res) {       // 기존 데이터 수정
-    const { name } = req.params;
-    const obj = req.body;
-    if(!obj.Name){
-        obj.Name = name;
-        }
-    dbData.splice(name, 1, obj);
-    console.log(obj);
-    res.send(obj);
-
-  });
-
-
-
-
-
-  
+app.delete('/posts/:name', function (req, res) {
+    // MariaDB에서 데이터를 삭제할 수 있도록 수정
+});
 
 app.delete('/posts/:name', function (req, res) {
     const { name } = req.params;
@@ -128,6 +117,7 @@ app.delete('/posts/:name', function (req, res) {
         res.status(404).json({ error: "Post not found" });
     }
   });
+
 
 
 app.listen(port, () => {

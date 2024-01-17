@@ -48,9 +48,10 @@
         
       </form>
       <button type="submit" class="btn btn-success" onclick="getJsonData()">Search</button>
-      <button type="submit" class="btn btn-success" style="margin-left: 25px;" onclick="postJsonData()">Add</button>
-      <button type="submit" class="btn btn-success" style="margin-left: 25px;" onclick="putJsonData()">Update</button>
-      <button type="submit" class="btn btn-success" style="margin-left: 25px;" onclick="deleteJsonData()">Delete</button>
+      <button type="submit" class="btn btn-success" style="margin-left: 15px;" onclick="getMyListData()">MyList</button>
+      <button type="submit" class="btn btn-success" style="margin-left: 15px;" onclick="postJsonData()">Add</button>
+      <button type="submit" class="btn btn-success" style="margin-left: 15px;" onclick="putJsonData()">Update</button>
+      <button type="submit" class="btn btn-success" style="margin-left: 15px;" onclick="deleteJsonData()">Delete</button>
     </p>
       <br />
       <div id="json"></div>
@@ -115,39 +116,112 @@
                 parentTag.appendChild(childTag_Description);
             }
         }
+
+       // db 데이터 조회
+        async function getMyListData() {
+            try {
+                const response = await fetch('http://localhost:3000/mylist', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                });
+
+                if (!response.ok) {
+                    console.error(`Error: ${response.status}`);
+                    return;
+                }
+
+                const jsonData = await response.json();
+
+                let parentTag = document.getElementById("json");
+                parentTag.replaceChildren();
+
+                if (Array.isArray(jsonData)) {
+                    jsonData.forEach(post => {
+                        let childTag_Name = document.createElement('p');
+                        let childTag_Height = document.createElement('p');
+                        let childTag_Place = document.createElement('p');
+                        let childTag_Description = document.createElement('p');
+
+                        childTag_Name.innerHTML = "산명: " + (post.Name || 'N/A') + "<br />";
+                        childTag_Height.innerHTML = "높이: " + (post.Height || 'N/A') + "<br />";
+                        childTag_Place.innerHTML = "지역: " + (post.Place || 'N/A') + "<br />";
+                        childTag_Description.innerHTML = "설명: " + (post.Description || 'N/A') + "<br />";
+
+                        parentTag.appendChild(childTag_Name);
+                        parentTag.appendChild(childTag_Height);
+                        parentTag.appendChild(childTag_Place);
+                        parentTag.appendChild(childTag_Description);
+                    });
+                } else {
+                    let childTag_Name = document.createElement('p');
+                    let childTag_Height = document.createElement('p');
+                    let childTag_Place = document.createElement('p');
+                    let childTag_Description = document.createElement('p');
+
+                    childTag_Name.innerHTML = "산명: " + (jsonData.Name || 'N/A') + "<br />";
+                    childTag_Height.innerHTML = "높이: " + (jsonData.Height || 'N/A') + "<br />";
+                    childTag_Place.innerHTML = "지역: " + (jsonData.Place || 'N/A') + "<br />";
+                    childTag_Description.innerHTML = "설명: " + (jsonData.Description || 'N/A') + "<br />";
+
+                    parentTag.appendChild(childTag_Name);
+                    parentTag.appendChild(childTag_Height);
+                    parentTag.appendChild(childTag_Place);
+                    parentTag.appendChild(childTag_Description);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+            }
+        }
+
+
+        //쓰기
         async function postJsonData() {
-            const response = await fetch("http://localhost:3000/posts", {
+            const name = document.getElementById("inputName").value;
+            const height = document.getElementById("inputHeight").value;
+            const place = document.getElementById("inputPlace").value;
+            const description = document.getElementById("inputDescription").value;
+
+            const response = await fetch("http://localhost:3000/regist", {
                 method: "POST",
-                body: JSON.stringify({
-                    "Name": document.getElementById("inputName").value,
-                    "Height": document.getElementById("inputHeight").value,
-                    "Place": document.getElementById("inputPlace").value,
-                    "Description": document.getElementById("inputDescription").value
-                }),
-                "headers": {
+                headers: {
                     "Content-Type": "application/json"
                 },
+                body: JSON.stringify({
+                    "name": name,
+                    "height": height,
+                    "place": place,
+                    "description": description
+                })
             });
+
+            if (!response.ok) {
+                console.error(`Error: ${response.status}`);
+                return;
+            }
+
             const jsonData = await response.json();
-            
+
             let parentTag = document.getElementById("json");
             parentTag.replaceChildren();
-            
+
             let childTag_Name = document.createElement('p');
             let childTag_Height = document.createElement('p');
             let childTag_Place = document.createElement('p');
             let childTag_Description = document.createElement('p');
-           
-            childTag_Name.innerHTML = "산명 : " + (jsonData.Name || 'N/A') + "<br />";
-            childTag_Height.innerHTML = "높이 : " + (jsonData.Height || 'N/A') + "<br />";
-            childTag_Place.innerHTML = "지역 : " + (jsonData.Place || 'N/A') + "<br />";
-            childTag_Description.innerHTML = "설명 : " + (jsonData.Description || 'N/A') + "<br />";
-            
+
+            childTag_Name.innerHTML = "산명 : " + (jsonData.name || 'N/A') + "<br />";
+            childTag_Height.innerHTML = "높이 : " + (jsonData.height || 'N/A') + "<br />";
+            childTag_Place.innerHTML = "지역 : " + (jsonData.place || 'N/A') + "<br />";
+            childTag_Description.innerHTML = "설명 : " + (jsonData.description || 'N/A') + "<br />";
+
             parentTag.appendChild(childTag_Name);
             parentTag.appendChild(childTag_Height);
             parentTag.appendChild(childTag_Place);
             parentTag.appendChild(childTag_Description);
         }
+
 
         async function putJsonData() {
             const name = document.getElementById("inputName").value;

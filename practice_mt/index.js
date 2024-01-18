@@ -40,23 +40,28 @@ app.get("/posts", (req, res) => {
 // DB 불러오기
 app.get("/mylist", async (req, res) => {
     try {
-        // 쿼리 실행
-        const results = await maria.query("SELECT * FROM board", function(error, result));
-        console.log(results);
-        res.json(sanitizedResults);
+        var sql = 'SELECT * FROM board';
+        maria.query(sql, function(err, results, field) {
+            if (err) {
+                console.error("DB 조회 중 에러 발생:", err);
+                res.status(500).json({ error: "DB 조회 중 에러 발생" });
+            } else {
+                // DB에서 받아온 데이터를 콘솔에 출력
+               // console.log(results);
+                // DB에서 받아온 데이터를 클라이언트로 전송
+                res.json(results);
+            }
+        });
     } catch (error) {
-        console.error("데이터 불러오기 중 에러가 발생했습니다.", error);
-        res.status(500).json({ error: "fail" });
+        console.error("DB 조회 중 에러 발생:", error);
+        res.status(500).json({ error: "DB 조회 중 에러 발생" });
     }
 });
 
 
-
-
-
-
+//DB에 정보넣기 
 app.post("/regist", async function (request, response) {
-    console.log(request.body);
+    //console.log(request.body);
     var name = request.body.name;
     var height = request.body.height;
     var place = request.body.place;
@@ -82,28 +87,46 @@ app.post("/regist", async function (request, response) {
 
 
 
-app.put('/posts/:name', function (req, res) {
-    // MariaDB에서 데이터를 수정할 수 있도록 수정
+app.put('/mylist/:name', async function (req, res) {
+    const { name } = req.params;
+    const { Height, Place, Description } = req.body;
+
+    try {
+        // MariaDB에서 데이터를 수정
+        await maria.query(
+            "UPDATE board SET height = ?, place = ?, description = ? WHERE mountain_name = ?",
+            [Height, Place, Description, name]
+        );
+
+        // 수정된 데이터를 클라이언트에게 응답
+        res.status(200).json({
+            Height: Height,
+            Place: Place,
+            Description: Description,
+            message: "success"
+        });
+    } catch (error) {
+        console.error("수정 중 에러가 발생했어요!!", error);
+        res.status(500).json({ error: "fail" });
+    }
 });
 
-app.delete('/posts/:name', function (req, res) {
-    // MariaDB에서 데이터를 삭제할 수 있도록 수정
-});
 
-app.delete('/posts/:name', function (req, res) {
+// mylist 데이터 삭제
+app.delete('/mylist/:name', async function (req, res) {
     const { name } = req.params;
 
-    // dbData 배열에서 해당 name을 가진 데이터를 찾아 삭제
-    const indexToRemove = dbData.findIndex(post => post.Name === name);
-    if (indexToRemove !== -1) {
-        dbData.splice(indexToRemove, 1);
-        res.status(204).send(); // 204 No Content 응답을 보냄
-        console.log(name);
-    } else {
-        res.status(404).json({ error: "Post not found" });
-    }
-  });
+    try {
+        // MariaDB에서 해당 name을 가진 데이터 삭제
+        await maria.query("DELETE FROM board WHERE mountain_name = ?", [name]);
 
+        res.status(204).send(); // 204 No Content 응답을 보냄
+        //console.log(name);
+    } catch (error) {
+        console.error("삭제 중 에러가 발생했어요!!", error);
+        res.status(500).json({ error: "fail" });
+    }
+});
 
 
 app.listen(port, () => {

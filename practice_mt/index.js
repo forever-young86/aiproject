@@ -41,22 +41,8 @@ app.get("/posts", (req, res) => {
 app.get("/mylist", async (req, res) => {
     try {
         // 쿼리 실행
-        const results = await maria.query("SELECT * FROM board");
-        console.log("Query Results:", results);
-
-        // results가 배열이 아닌 경우 배열로 변환
-        if (!Array.isArray(results)) {
-            results = [results];
-        }
-
-        // 필요한 데이터만 추출하여 새로운 객체로 만듦
-        const sanitizedResults = results.map(result => ({
-            Name: result.mountain_name,
-            Height: result.height,
-            Place: result.place,
-            Description: result.description
-        }));
-
+        const results = await maria.query("SELECT * FROM board", function(error, result));
+        console.log(results);
         res.json(sanitizedResults);
     } catch (error) {
         console.error("데이터 불러오기 중 에러가 발생했습니다.", error);

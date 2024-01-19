@@ -18,7 +18,7 @@ app.use(express.static(__dirname));
 
 
 app.get("/", (req, res)=> {
-    res.sendFile(__dirname + "/main3.html")        
+    res.sendFile(__dirname + "/main.html")        
 });
 
 //산 정보 불러오기

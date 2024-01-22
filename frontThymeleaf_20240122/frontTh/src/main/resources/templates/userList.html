@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+	<h1 align="center">전체 사용자 리스트</h1>
+    <div align="center">
+        <button type="button" th:onclick="|location.href='@{/user/register}'|">사용자 등록</button>
+    </div> <br/>
+
+    <div align="center">
+        <table>
+            <thead>
+            <tr>
+                <th style="width: 50px;">이름</th>
+                <th style="width: 150px;">이메일</th>
+                <th style="width: 100px;">세부정보</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="user : ${users}">
+                <td th:text="${user.name}"/>
+                <td th:text="${user.email}"/>
+                <td>
+                    <button type="button" th:onclick="|location.href='@{/user/{Id}(Id=${user.id})}'|"
+                            style="width: auto">
+                        세부 정보 보기
+                    </button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <body align="center">
+    <h1>사용자 등록 양식</h1>
+    <div align="center">
+        <form action="/user/register" th:object="${user}" method="post">
+            <div>
+                <label th:for="name">이름 : </label>
+                <input type="text" th:field="*{name}" placeholder="이름 입력"/>
+            </div> <br/>
+
+            <div>
+                <label th:for="email">이메일 : </label>
+                <input type="text" th:field="*{email}" placeholder="이메일 입력"/>
+            </div> <br/>
+
+            
+
+            <div align="center">
+                <button type="button" th:onclick="|location.href='@{/user}'|">취소</button>
+                <button type="submit" style="margin-left: 30px">추가</button>
+            </div>
+        </form>
+    </div>
+</body>
+</body>
+</html>

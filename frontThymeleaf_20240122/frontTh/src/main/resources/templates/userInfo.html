@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body align="center">
+    <h1>세부 정보</h1>
+    <div align="center">
+        <div class="form-style">
+			<div th:text="'ID : ' + ${user.id}"/> <br/>
+            <div th:text="'이름 : ' + ${user.name}"/> <br/>
+            <div th:text="'이메일 : ' + ${user.email}"/> <br/>
+            
+            <div align="center">
+                <button type="button" th:onclick="|location.href='@{/user}'|">뒤로가기</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

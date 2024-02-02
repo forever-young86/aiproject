@@ -36,3 +36,16 @@ npm run build
 You can preview the production build with `npm run preview`.
 
 > To deploy your app, you may need to install an [adapter](https://kit.svelte.dev/docs/adapters) for your target environment.
+
+
+``` javascript //(언어를 넣고 밑에 코드를 넣으면 됨 )
+import 
+```
+
+- title
+    - subjeect1
+        - subtitle
+            - sub1
+
+
+- 깃허브에 올릴때 안올리고 싶으면 .md를 git ignore에 써놓으면 됨!

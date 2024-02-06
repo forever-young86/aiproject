@@ -17,4 +17,4 @@
     <h3>query String key1:  {key1}</h3>
 </div>
 
-<ComponentTest/>
+<ComponentTest/> <!--스벨트 문법-->

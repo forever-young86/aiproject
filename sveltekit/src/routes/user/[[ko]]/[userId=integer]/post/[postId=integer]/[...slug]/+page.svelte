@@ -12,6 +12,6 @@
 
 <h1>Rest Parameters</h1>
 <h2>[...slug] = {slug}</h2>
-{#each slugArr as slug, i}
+{#each slugArr as slug, i}      <!--반복문-->
 <h4>slug {i+1} : {slug}</h4>
 {/each}

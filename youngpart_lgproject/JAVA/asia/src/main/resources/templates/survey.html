@@ -21,110 +21,75 @@
 <body>
   <section class="main">
     <div class="profile-card">
-		<form>
-		    <div class="questionList">
-	 <!-- questionList를 순회하며 각 질문을 출력 -->
-                <th:block th:each="question : ${questionList}">
-                    <div th:if="${question.questionId >= 1 and question.questionId <= 6}">
-                        <h5 th:text="${question.questionId}" style="display: inline;"></h5>
-                        <h4 th:text="${question.question}" style="display: inline;"></h4>  
-                        <div class="answer">
-                            <!-- 답변 입력 폼 -->
-                            <input type="radio" th:name="${question.questionId}" th:value="1" class="r1"> 전혀 그렇지 않다
-                            <input type="radio" th:name="${question.questionId}" th:value="2" class="r1"> 그렇지 않다
-                            <input type="radio" th:name="${question.questionId}" th:value="3" class="r1"> 보통이다
-                            <input type="radio" th:name="${question.questionId}" th:value="4" class="r1"> 그렇다
-                            <input type="radio" th:name="${question.questionId}" th:value="5" class="r1"> 매우 그렇다
-                        </div>
+        <form id="surveyForm" action="/submitAnswers" method="post">
+		    <input type="hidden" name="setId" id="setId" value="1"> <!-- setId 값을 hidden input에 저장 -->
+            <div class="questionList">
+				<div th:each="question : ${questionList}">
+                    <h5 th:text="${question.questionId}" style="display: inline;"></h5>
+                    <h4 th:text="${question.question}" style="display: inline;"></h4>
+                    <div class="answer">
+                        <!-- 답변 입력 폼 -->
+                        <input type="radio" th:name="${question.questionId}" th:value="1" class="r1"> 전혀 그렇지 않다
+                        <input type="radio" th:name="${question.questionId}" th:value="2" class="r1"> 그렇지 않다
+                        <input type="radio" th:name="${question.questionId}" th:value="3" class="r1"> 보통이다
+                        <input type="radio" th:name="${question.questionId}" th:value="4" class="r1"> 그렇다
+                        <input type="radio" th:name="${question.questionId}" th:value="5" class="r1"> 매우 그렇다
                     </div>
-                </th:block>
+                    <br>
+                </div>
             </div>
             <br>
             <input type="submit">
-		</form>
+        </form>
     </div>
-  </section>
+</section>
 
-	      
- <!-- <script>
-    // 페이지네이션 버튼과 현재 페이지 상태를 추적하는 변수들
-    var currentPage = 1;
-    var totalQuestions = 3; // 전체 질문 수
-
-    // 초기 페이지 로드 시 버튼 상태 업데이트
-    updatePagination();
-
-    // 이전 페이지로 이동하는 함수
-    function prevPage() {
-        if (currentPage > 1) {
-            currentPage--;
-            updatePagination();
-        }
-    }
-
-    // 다음 페이지로 이동하는 함수
-    function nextPage() {
-        if (currentPage < totalQuestions) {
-            currentPage++;
-            updatePagination();
-        }
-    }
-
-    // 페이지네이션 버튼 상태를 업데이트하는 함수
-    function updatePagination() {
-        var prevBtn = document.getElementById('prevBtn');
-        var nextBtn = document.getElementById('nextBtn');
-
-        // 첫 번째 페이지에서는 이전 버튼 비활성화
-        if (currentPage === 1) {
-            prevBtn.classList.add('disabled');
-        } else {
-            prevBtn.classList.remove('disabled');
-        }
-
-        // 마지막 페이지에서는 다음 버튼 비활성화
-        if (currentPage === totalQuestions) {
-            nextBtn.classList.add('disabled');
-        } else {
-            nextBtn.classList.remove('disabled');
-        }
-    }
-
-    // 이벤트 리스너 추가
-    document.getElementById('prevBtn').addEventListener('click', prevPage);
-    document.getElementById('nextBtn').addEventListener('click', nextPage);
-  </script> -->
-
+      
+ 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script>
     $(document).ready(function() {
         $("#surveyForm").submit(function(event) {
             event.preventDefault(); // 기본 제출 동작 방지
-            // 선택된 답변 값을 가져옴
-            var selectedAnswers = {};
-            $("input[type=radio]:checked").each(function() {
-                selectedAnswers[$(this).attr("name")] = $(this).val();
-            });
-            // Ajax 요청을 통해 선택된 답변을 서버에 전송
-            $.ajax({
-                type: "POST",
-                url: "/submitAnswers", // 답변을 저장할 엔드포인트 URL
-                contentType: "application/json",
-                data: JSON.stringify(selectedAnswers), // 선택된 답변 데이터를 전송
-                success: function(response) {
-                    // 성공적으로 서버에 답변을 저장한 경우, 다음 질문 세트를 가져옴
+            
+	        // 선택된 setId 값을 가져와서 hidden input의 값으로 설정
+        var selectedSetId = parseInt($("input[name=setId]").val());
+        
+        // 선택된 답변 값을 가져옴
+        var selectedAnswers = {};
+        $("input[type=radio]:checked").each(function() {
+            selectedAnswers[$(this).attr("name")] = $(this).val();
+        });
+        
+        // 선택된 setId 값을 데이터에 추가
+        selectedAnswers["setId"] = selectedSetId;
+        
+        // 선택된 답변을 서버로 전송하고 다음 질문 세트를 받아오는 AJAX 요청
+        $.ajax({
+            type: "POST",
+            url: "/submitAnswers",
+            contentType: "application/json",
+            data: JSON.stringify(selectedAnswers),
+            success: function(response) {
+                var nextSetId = parseInt(response);
+                if (!isNaN(nextSetId)) {
+                    // 다음 질문 세트를 불러오는 AJAX 요청
                     $.ajax({
                         type: "GET",
-                        url: "/nextQuestionSet", // 다음 질문 세트를 가져올 엔드포인트 URL
+                        url: "/survey/" + nextSetId,
                         success: function(nextQuestionSet) {
-                            // 다음 질문 세트를 페이지에 추가
-                            $(".questionList").html(nextQuestionSet);
+                            var nextQuestionListHtml = $(nextQuestionSet).find('.questionList').html();
+                            // 기존 질문 목록을 다음 질문 목록으로 교체합니다.
+                            $('.profile-card .questionList').html(nextQuestionListHtml);
                         }
                     });
+                } else {
+                    console.error("Invalid setId: " + response);
                 }
-            });
+            }
         });
     });
+});
 </script>
 </body>
 </html>
